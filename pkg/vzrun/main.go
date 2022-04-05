@@ -145,6 +145,9 @@ func Run(cfg Config, sigintCh chan os.Signal, startEvents func(ctx context.Conte
 	)
 
 	bytes, err := units.RAMInBytes(*y.Memory)
+	if err != nil {
+		logrus.Fatal("Cannot convert Ram to bytes", err)
+	}
 	config := vz.NewVirtualMachineConfiguration(
 		bootLoader,
 		uint(*y.CPUs),
@@ -163,7 +166,9 @@ func Run(cfg Config, sigintCh chan os.Signal, startEvents func(ctx context.Conte
 
 	// network
 	macAddr, err := net.ParseMAC(*y.MACAddress)
-
+	if err != nil {
+		logrus.Fatal("Cannot parse macAddress", err)
+	}
 	natAttachment := vz.NewNATNetworkDeviceAttachment()
 	networkConfig := vz.NewVirtioNetworkDeviceConfiguration(natAttachment)
 	networkConfig.SetMACAddress(vz.NewMACAddress(macAddr))
@@ -232,7 +237,7 @@ func Run(cfg Config, sigintCh chan os.Signal, startEvents func(ctx context.Conte
 				logrus.Println("request stop error:", err)
 				return nil
 			}
-			logrus.Println("recieved signal", result)
+			logrus.Println("received signal", result)
 		case newState := <-vm.StateChangedNotify():
 			if newState == vz.VirtualMachineStateRunning {
 				pidFile := filepath.Join(cfg.InstanceDir, filenames.VZPid)
